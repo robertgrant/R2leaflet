@@ -5,6 +5,8 @@
 #                                                #
 #  Version 0.1: produces only simple markers     #
 #               and pop-up labels on OSM tiles   #
+#  Version 0.2: circle function (colour, size    #
+#               and map.zoom                     #
 #                                                #
 #  See also: leafletjs.com                       #
 #  github.com/shramov/leaflet-plugins            #
@@ -20,7 +22,7 @@ double.escape<-function(textvector) {
 }
 
 
-R2leaflet<-function(lat,long,label,
+R2leaflet<-function(lat,long,label, size=0, color='blue',
                     map.height=480,
                     map.lat=53.16,
                     map.long=-1.27,
@@ -58,7 +60,7 @@ R2leaflet<-function(lat,long,label,
 	                map.lat,
 	                ",",
 	                map.long,
-	                "], 6);", sep="")
+                  	"], [",map.zoom,"]);", sep="")
 	body.comment3<-"<!-- The images are obtained online using L.tileLayer... -->"
 	if (map.source=="OSM") {
 		div.tile<-"L.tileLayer(\'http://{s}.tile.osm.org/{z}/{x}/{y}.png\', { attribution: \'&copy; <a href=\"http://osm.org/copyright\">OpenStreetMap</a> contributors\' }).addTo(map);"
@@ -78,14 +80,24 @@ R2leaflet<-function(lat,long,label,
 			    bindpopup,
 	                ";", sep="")
 	# NB div.mark is a vector. If lat, long and label are different lengths, it will recycle them with surprising results!
+    	# ifelse to draw circles in case size !=0
+    	if(size != 0){
+        	      div.mark2<-paste("L.circle(
+        	      [",lat,",",long,"],[",size/10,"]",",
+        	      {color: ['",color,"']",",fillColor: ('",color,"')",",fillOpacity: 0.5 }
+        	      ).addTo(map)",
+        	      ";", sep="")
+    	} else {
+        	div.mark2<-paste()
+    	}
 	body.comment5<-"<!-- Finally, the tags for JavaScript, the map div, and the body of the webpage are closed off -->"
 	div.end<-"</script></div>"
 	body.close<-"</body>"
 	
 	leaflet.text<-c(head.open,head.comment,head.css,head.js1,head.js2,head.js3,head.close,
-                      body.open,body.comment1,div.open,body.comment2,
-			    div.view,body.comment3,div.tile,body.comment4,
-			    div.mark,body.comment5,div.end,body.close)
+                      	body.open,body.comment1,div.open,body.comment2,
+			div.view,body.comment3,div.tile,body.comment4,
+                	div.mark,div.mark2,body.comment5,div.end,body.close)
 	conn<-file(filename)
 	writeLines(leaflet.text,conn)
 	close(conn)
