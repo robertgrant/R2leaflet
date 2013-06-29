@@ -21,6 +21,8 @@ double.escape<-function(textvector) {
 
 
 R2leaflet<-function(lat,long,label,
+		    circ.lat=NULL, circ.long=NULL, 
+                    circ.size=0, circ.color='blue',
                     map.height=480,
                     map.lat=53.16,
                     map.long=-1.27,
@@ -78,14 +80,31 @@ R2leaflet<-function(lat,long,label,
 			    bindpopup,
 	                ";", sep="")
 	# NB div.mark is a vector. If lat, long and label are different lengths, it will recycle them with surprising results!
-	body.comment5<-"<!-- Finally, the tags for JavaScript, the map div, and the body of the webpage are closed off -->"
+    	body.comment5<-"<!-- If you asked for circles, they are added by L.circle -->"
+      if(circ.size != 0){
+			if(is.null(circ.lat)) {
+				circ.lat<-lat
+			}
+			if(is.null(circ.long)) {
+				circ.long<-long
+			}
+        	      div.mark2<-paste("L.circle(
+        	      [",circ.lat,",",circ.long,"],[",circ.size/10,"]",",
+        	      {color: ['",circ.color,"']",",fillColor: ('",
+                  circ.color,"')",",fillOpacity: 0.5 }
+        	      ).addTo(map)",
+        	      ";", sep="")
+    	} else {
+        	div.mark2<-paste()
+    	}
+	body.comment6<-"<!-- Finally, the tags for JavaScript, the map div, and the body of the webpage are closed off -->"
 	div.end<-"</script></div>"
 	body.close<-"</body>"
 	
 	leaflet.text<-c(head.open,head.comment,head.css,head.js1,head.js2,head.js3,head.close,
                       body.open,body.comment1,div.open,body.comment2,
 			    div.view,body.comment3,div.tile,body.comment4,
-			    div.mark,body.comment5,div.end,body.close)
+			    div.mark,body.comment5,div.mark2,body.comment6,div.end,body.close)
 	conn<-file(filename)
 	writeLines(leaflet.text,conn)
 	close(conn)
